@@ -1,29 +1,37 @@
 #include "FTDebouncer.h"
 FTDebouncer pinDebouncer(30);
 
-int coils[] = {54, 55, 56, 57, 58, 59, 60, 61};
+int coils[] = {54, 55, 56, 57, 58, 59, 60, 61}; //Only 54-57 used
 
 int dispDataLn = 62;
 int dispBitSel[] = {63,64,65};
 int dispLatchSel[] = {66,67}; //8 digits -> 4 latches
 int dispLatchEnable = 68;
 
-
-int lampDataLn = 14;
-int lampBitSel[] = {15,16,17};
-int lampLatchSel[] = {18,19,20,21};
-int lampLatchEnable[] = {69};
-
 int sndSel[] = {8, 9, 10, 11};
 int sndPlay = 12;
 
+int CoinMtrRelay = 7;
+int GOverLmp = 6;
+int HScoreLmp = 5;
+int TiltLmp = 4;
+
+int lampDataLn = 14;
+int lampBitSel[] = {15,16,17};
+int lampLatchSel[] = {18,19,20};
+int lampLatchEnable = 21;
+
+
 int switchIN[] = {22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40, 41,42, 43, 44, 45, 46, 47, 48, 49, 50,51,52,53};  int inputCnt = 32;
+//Only 22-40 used atm.
 int coinSW = 22;
 int startSW = 23;
-int toughSW = 24;
-int outlanesSW = 25;
-int inlanesSW = 26;
-int holeSW = 27;
+int troughSW = 24;
+int holeSW = 25;
+int outlanesSW = 26;
+int inlanesSW = 27;
+
+
 int outputs[] = {8,9,10,11,12, 14, 15, 16,17,18,19,20,21, 54, 55, 56, 57, 58, 59, 60, 61, 62,63,64,65,66,67,68,69};
 int outputCnt = 29;
 int coilPins[] = {54, 55, 56, 57, 58, 59, 60, 61};
