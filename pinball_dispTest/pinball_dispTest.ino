@@ -23,7 +23,7 @@ int lampLatchEnable = 21;
 
 
 int switchIN[] = {22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40, 41,42, 43, 44, 45, 46, 47, 48, 49, 50,51,52,53};  
-int inputCnt = 19; //Only 22-40 used atm.
+int inputCnt = 32; //Only 22-40 used atm.
 
 int coinSW = 22;
 int startSW = 23;
@@ -45,10 +45,17 @@ int topLn1 = 38;
 int leftLne = 39;
 int sw22 = 40;
 
-int outputs[] = {0,1,2,3,4,5,6,7, 8,9,10,11,12, 13, 14, 15, 16,17,18,19,20,21, 54, 55, 56, 57, 58, 59, 60, 61, 62,63,64,65,66,67,68,69};
-int outputCnt = 29;
+int outputs1[] = {0,1,2,3,4,5,6,7, 8,9,10,11,12, 13, 14, 15, 16,17,18,19,20, 21}
+int output1Cnt = 22;
+
+int outputs2[] = {54, 55, 56, 57, 58, 59, 60, 61, 62,63,64,65,66,67,68,69};
+int output2Cnt = 16;
+
 int coilPins[] = {54, 55, 56, 57, 58, 59, 60, 61};
 int coilCnt = 8;
+
+int relays12V[] = {};
+int relays12Vcnt = 8;
 
 int dispDataBit = 0; //default value for init cycle
 int lampDataBit = 0; //default value for init cycle
@@ -194,4 +201,6 @@ void onPinDeactivated(int pinNumber){
   // do something according to the _pinNR that is triggered
   // for instance:
   Serial.println(pinNumber);
+  //Through switch?
+  //Shooter lane sw?
 }
