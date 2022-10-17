@@ -31,9 +31,21 @@ int troughSW = 24;
 int holeSW = 25;
 int outlanesSW = 26;
 int inlanesSW = 27;
+int leftTgts = 28;
+int rightTgts = 29;
+int DTdown = 30;
+int Shooterln = 31;
+int stndTarget = 32;
+int topLn6 = 33;
+int topLn5 = 34;
+int topLn4 = 35;
+int topLn3 = 36;
+int topLn2 = 37;
+int topLn1 = 38;
+int leftLne = 39;
+int sw22 = 40;
 
-
-int outputs[] = {8,9,10,11,12, 14, 15, 16,17,18,19,20,21, 54, 55, 56, 57, 58, 59, 60, 61, 62,63,64,65,66,67,68,69};
+int outputs[] = {0,1,2,3,4,5,6,7, 8,9,10,11,12, 13, 14, 15, 16,17,18,19,20,21, 54, 55, 56, 57, 58, 59, 60, 61, 62,63,64,65,66,67,68,69};
 int outputCnt = 29;
 int coilPins[] = {54, 55, 56, 57, 58, 59, 60, 61};
 int coilCnt = 8;
