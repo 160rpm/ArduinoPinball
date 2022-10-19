@@ -181,8 +181,8 @@ void onPinActivated(int pinNumber){
       case 24: //tough SW
           Serial.println("trough sw closed");
           break;
-        case 25: //outlanes SW
-          Serial.println("outlane sw closed");
+        case 25: //Hole SW
+          Serial.println("Hole sw closed");
           break;
         case 26: //inlanes sw
           Serial.println("inlane sw closed");
