@@ -1,4 +1,5 @@
 #include "FTDebouncer.h"
+#include "pinball_lamps.ino"
 FTDebouncer pinDebouncer(30);
 
 int switchIN[] = {22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40, 41,42, 43, 44, 45, 46, 47, 48, 49, 50,51,52,53};  
@@ -41,9 +42,10 @@ int trgetBnkRstPin = 57;
 
 // Bank1 is active HIGH
 int relays12VPins[] = {0, 1, 2, 3, 4, 5, 6, 7}; int relays12Vcnt = 8;
-int GOverLmp = 0;
-int HScoreLmp = 1;
-int TiltLmp = 2;
+int gOverLmp = 0;
+int hScoreLmp = 1;
+int tiltLmp = 2;
+int startBtnLmp = 3;
 int coinMtrPin = 6; //5V feed on this relay
 int topLaneLmp6 = 7; //5V feed on this relay
 
@@ -51,28 +53,6 @@ int dispDataLn = 62;
 int dispBitSel[] = {63,64,65};
 int dispLatchSel[] = {66,67}; //8 digits -> 4 latches
 int dispLatchEnable = 68;
-
-int lampDataLn = 14;
-int lampBitSel[] = {15,16,17};
-int lampLatchEnable = 18;
-int lampLatchSel[] = {21,20,19}; //Driver board has 6 latches for 3 banks, but currently only two banks used, so only actually need 4 latches -> 2 select lines
-
-int lamp1 = 0;
-int lamp2 = 1;
-
-//First 3 digits are latch adr, next 3 are bit adr. Treat as binary values, 0 or 1 only.
-int lampMap[32][6] =  { {0, 0, 0, 0, 0, 0}, {0, 0, 0, 1, 0, 0}, {0, 0, 0, 0, 1, 0}, {0, 0, 0, 1, 1, 0},    //lamps 0-3
-                        {0, 0, 0, 0, 0, 1}, {0, 0, 0, 1, 0, 1}, {0, 0, 0, 0, 1, 1}, {0, 0, 0 , 1, 1, 1},   //lamps 4-7
-                        {1, 0, 0, 0, 0, 0}, {1, 0, 0, 1, 0, 0}, {1, 0, 0, 0, 1, 0}, {1, 0, 0, 1, 1, 0},    //lamps 8-11
-                        {1, 0, 0, 0, 0, 1}, {1, 0, 0, 1, 0, 1}, {1, 0, 0, 0, 1, 1}, {1, 0, 0 , 1, 1, 1}    //lamps 12-15
-                        {0, 1, 0, 0, 0, 0}, {0, 1, 0, 1, 0, 0}, {0, 1, 0, 0, 1, 0}, {0, 1, 0, 1, 1, 0},    //lamps 16-19
-                        {0, 1, 0, 0, 0, 1}, {0, 1, 0, 1, 0, 1}, {0, 1, 0, 0, 1, 1}, {0, 1, 0 , 1, 1, 1},   //lamps 20-23
-                        {1, 1, 0, 0, 0, 0}, {1, 1, 0, 1, 0, 0}, {1, 1, 0, 0, 1, 0}, {1, 1, 0, 1, 1, 0},    //lamps 24-27
-                        {1, 1, 0, 0, 0, 1}, {1, 1, 0, 1, 0, 1}, {1, 1, 0, 0, 1, 1}, {1, 1, 0 , 1, 1, 1} }; //lamps 28-31
-
-// do something like ToggleLamp(int state, int lampMap[lamp1]){} to turn individual lamps on or off. 
-
-
 
 
 int sndSel[] = {8, 9, 10, 11, 12};
