@@ -31,7 +31,6 @@ int output1Cnt = 22;
 int outputs2[] = {54, 55, 56, 57, 58, 59, 60, 61, 62,63,64,65,66,67,68,69};
 int output2Cnt = 16;
 
-// Bank1 is active HIGH
 int coilPins[] = {54, 55, 56, 57, 58, 59, 60, 61}; //Only 54-57 used
 int coilCnt = 8;
 int gameRelayPin = 54; 
@@ -40,10 +39,11 @@ int HoleSolPin = 56;
 int trgetBnkRstPin = 57;
 
 // Bank1 is active HIGH
-int relays12VPins[] = {0, 1, 2, 3, 4, 5, 6, 7}; int relays12Vcnt = 8;
+int relays12VPins[] = {0, 1, 2, 3, 4, 5}; int relays12Vcnt = 6;
 int GOverLmp = 0;
 int HScoreLmp = 1;
 int TiltLmp = 2;
+
 int coinMtrPin = 6; //5V feed on this relay
 int topLaneLmp6 = 7; //5V feed on this relay
 
@@ -55,7 +55,7 @@ int dispLatchEnable = 68;
 int lampDataLn = 14;
 int lampBitSel[] = {15,16,17};
 int lampLatchEnable = 18;
-int lampLatchSel[] = {21,20,19}; //Driver board has 6 latches for 3 banks, but currently only two banks used, so only actually need 4 latches -> 2 select lines
+int lampLatchSel[] = {19,20,21}; //Driver board has 6 latches for 3 banks, but currently only two banks used, so only need 4 latches -> 2 select lines
 
 int sndSel[] = {8, 9, 10, 11, 12};
 int sndPlay = 13;
@@ -64,7 +64,7 @@ int sndPlay = 13;
 bool inPlay = false; //Game running or in attract mode?
 bool ballInTrough = false; //Is ball ready when starting game?
 int attractLmpCnt = 0;
-int stdLatchDelay = 75; //Std. delay for latch ops in millisecs
+int stdLatchDelay = 100; //Std. delay for latch ops in millisecs
 int dispDataBit = 0; //default value for init cycle
 int lampDataBit = 0; //default value for init cycle
 int credits = 0;
@@ -82,17 +82,16 @@ int rightTgtCnt = 0; //win someting if hit 5 times
 
 
 void clearSystem() { 
-  //clear relay bank 1, coil lines, game relay
+  //clear coil lines, game relay first
   for (int cc = 0; cc < coilCnt; cc++) {
     digitalWrite(coilPins[cc], LOW);
-    digitalWrite(relays12VPins[cc], LOW);
   }
   digitalWrite(HoleSolPin, HIGH); //Just in case ball was left here
-  delay(200);
+  delay(500);
   digitalWrite(HoleSolPin, LOW);
 
   //clear sound lines
-  for (int cs = 0; cs < 5; cs++) {
+   for (int cs = 0; cs < 5; cs++) {
     digitalWrite(sndSel[cs], LOW);
   }
   digitalWrite(sndPlay, HIGH); //Enable is active LOW
@@ -158,10 +157,6 @@ void ClearLamps() {
   //lampBitSel[] = {15,16,17};
   ///lampLatchSel[] = {19,20, 21};
   //lampLatchEnable = 18;
-  digitalWrite(0, LOW);  
-  digitalWrite(1, LOW);    
-  digitalWrite(2, LOW);
-  
   digitalWrite(lampDataLn, HIGH); //Lamp relays trigger on gnd
   digitalWrite(lampLatchEnable, HIGH); //Active LOW
 
@@ -199,68 +194,58 @@ void ClearLamps() {
         break;
 
       default:
-        Serial.println("this lamp latch not defined in ClearLamps():");
+        Serial.println("this lamp latch not defined:");
         Serial.println(cd);
         break;
     }
   
     //Start setting bits in latches
-    digitalWrite(lampBitSel[0], LOW);
-    digitalWrite(lampBitSel[1], LOW);
-    digitalWrite(lampBitSel[2], LOW);    
     digitalWrite(lampLatchEnable, LOW); //Active LOW //set bit 0
-    delay(stdLatchDelay); //wait a bit here
+    delay(200); //wait a bit here
     digitalWrite(lampLatchEnable, HIGH); 
-    
     digitalWrite(lampBitSel[0], HIGH);
-    delay(stdLatchDelay);
+    delay(100);
     digitalWrite(lampLatchEnable, LOW); //set bit 1
-    delay(stdLatchDelay); //wait a bit here
+    delay(200); //wait a bit here
     digitalWrite(lampLatchEnable, HIGH); 
-    
     digitalWrite(lampBitSel[0], LOW);
     digitalWrite(lampBitSel[1], HIGH);
-    delay(stdLatchDelay);
+    delay(100);
     digitalWrite(lampLatchEnable, LOW); //set bit 2
-    delay(stdLatchDelay); //wait a bit here
+    delay(200); //wait a bit here
     digitalWrite(lampLatchEnable, HIGH);
-    
     digitalWrite(lampBitSel[0], HIGH);
     digitalWrite(lampBitSel[1], HIGH);
     delay(100);
     digitalWrite(lampLatchEnable, LOW);  //set bit 3
-    delay(100); //wait a bit here
+    delay(200); //wait a bit here
     digitalWrite(lampLatchEnable, HIGH); 
-    
     digitalWrite(lampBitSel[0], LOW);
     digitalWrite(lampBitSel[1], LOW);
     digitalWrite(lampBitSel[2], HIGH);
-    delay(stdLatchDelay);
+    delay(100);
     digitalWrite(lampLatchEnable, LOW);  //set bit 4
-    delay(100); //wait a bit here
+    delay(200); //wait a bit here
     digitalWrite(lampLatchEnable, HIGH); 
-    
     digitalWrite(lampBitSel[0], HIGH);
     digitalWrite(lampBitSel[1], LOW);
     digitalWrite(lampBitSel[2], HIGH);
-    delay(stdLatchDelay);
+    delay(100);
     digitalWrite(lampLatchEnable, LOW); //set bit 5
-    delay(100); //wait a bit here
+    delay(200); //wait a bit here
     digitalWrite(lampLatchEnable, HIGH); 
-
     digitalWrite(lampBitSel[0], LOW);
     digitalWrite(lampBitSel[1], HIGH);
     digitalWrite(lampBitSel[2], HIGH);
     delay(100);
     digitalWrite(lampLatchEnable, LOW); //set bit 6
-    delay(stdLatchDelay); //wait a bit here
+    delay(200); //wait a bit here
     digitalWrite(lampLatchEnable, HIGH);
-    
     digitalWrite(lampBitSel[0], HIGH);
     digitalWrite(lampBitSel[1], HIGH);
     digitalWrite(lampBitSel[2], HIGH);
     digitalWrite(lampLatchEnable, LOW);  //set bit 7
-    delay(stdLatchDelay); //wait a bit here
+    delay(200); //wait a bit here
     digitalWrite(lampLatchEnable, HIGH); //latches are de-selected
   }
 }
@@ -293,20 +278,15 @@ void loop() {
 
     //Show high score on score display
     digitalWrite(HScoreLmp, HIGH); 
-    digitalWrite(GOverLmp, HIGH); 
-    
+
     //Flash the other PF lamps
     AttractLamps();
   }
 
   if (inPlay == true) {
     //Game playing here
-    //set Game relay on (flippers + music on)
-    //The "Game Relay" can stay on forever (not a solenoid)
-    digitalWrite(gameRelayPin, HIGH);  
-    digitalWrite(HScoreLmp, LOW);      
-  
 
+    //set Game relay on (flippers powered+music plays)
     //Update display with balls left and current player score
     //Check for game over conditions and set inPlay = false if met, 0 balls left, etc
   }
@@ -337,7 +317,7 @@ void onPinActivated(int pinNumber){
         ClearLamps();
         //reset drop targets
         digitalWrite(trgetBnkRstPin, HIGH);
-        delay(500);
+        delay(750);
         digitalWrite(trgetBnkRstPin, LOW);
         ballCnt = 3; //reset ball count
         topLane1 = false;
@@ -348,7 +328,6 @@ void onPinActivated(int pinNumber){
         topLane6 = false;
         leftTgtCnt = 0;
         leftTgtCnt = 0;
-        digitalWrite(GOverLmp, LOW);            
       }
       break;
     case 24: //tough SW
@@ -439,7 +418,7 @@ void onPinActivated(int pinNumber){
 void onPinDeactivated(int pinNumber){
   // do something according to the _pinNR that is released
   switch (pinNumber) {
-    case 31: //Shooter lane sw
+    case 22: //Shooter lane sw
       Serial.println("Shooter lane sw released");
       //play some sound effect here
       break;
@@ -461,7 +440,7 @@ void AttractLamps() {  //Attract mode lamp show
   digitalWrite(lampDataLn, LOW); //Lamp relays trigger on gnd
   digitalWrite(lampLatchEnable, HIGH); //Active LOW
 
-  if (attractLmpCnt > 47) {
+  if (attractLmpCnt > 31) {
     attractLmpCnt = 0;
     ClearLamps();
   }
@@ -486,24 +465,12 @@ void AttractLamps() {  //Attract mode lamp show
     digitalWrite(lampLatchSel[2], LOW);
     lmpLatchOffset = attractLmpCnt - 16;
   }
-  else if (attractLmpCnt < 32) {
+  else {
     digitalWrite(lampLatchSel[0], HIGH);
     digitalWrite(lampLatchSel[1], HIGH);
     digitalWrite(lampLatchSel[2], LOW);
     lmpLatchOffset = attractLmpCnt - 24;
   }
-  else if (attractLmpCnt < 40) {
-    digitalWrite(lampLatchSel[0], HIGH);
-    digitalWrite(lampLatchSel[1], HIGH);
-    digitalWrite(lampLatchSel[2], LOW);
-    lmpLatchOffset = attractLmpCnt - 32;
-  }  
-  else {
-    digitalWrite(lampLatchSel[0], LOW);
-    digitalWrite(lampLatchSel[1], LOW);
-    digitalWrite(lampLatchSel[2], HIGH);
-    lmpLatchOffset = attractLmpCnt - 40;
-  }    
   switch (lmpLatchOffset) {
     case 0:
       digitalWrite(lampBitSel[0], LOW);
@@ -526,7 +493,7 @@ void AttractLamps() {  //Attract mode lamp show
     case 2:
       digitalWrite(lampBitSel[0], LOW);
       digitalWrite(lampBitSel[1], HIGH);
-      digitalWrite(lampBitSel[2], LOW);
+      digitalWrite(lampBitSel[1], LOW);
       delay(stdLatchDelay);
       digitalWrite(lampLatchEnable, LOW); //set lamp on
       delay(stdLatchDelay); //wait a bit here
@@ -535,7 +502,7 @@ void AttractLamps() {  //Attract mode lamp show
     case 3:
       digitalWrite(lampBitSel[0], HIGH);
       digitalWrite(lampBitSel[1], HIGH);
-      digitalWrite(lampBitSel[2], LOW);
+      digitalWrite(lampBitSel[1], LOW);
       delay(stdLatchDelay);
       digitalWrite(lampLatchEnable, LOW); //set lamp on
       delay(stdLatchDelay); //wait a bit here
@@ -544,7 +511,7 @@ void AttractLamps() {  //Attract mode lamp show
     case 4:
       digitalWrite(lampBitSel[0], LOW);
       digitalWrite(lampBitSel[1], LOW);
-      digitalWrite(lampBitSel[2], HIGH);
+      digitalWrite(lampBitSel[1], HIGH);
       delay(100);
       digitalWrite(lampLatchEnable, LOW); //set lamp on
       delay(150); //wait a bit here
@@ -553,28 +520,28 @@ void AttractLamps() {  //Attract mode lamp show
     case 5:
       digitalWrite(lampBitSel[0], HIGH);
       digitalWrite(lampBitSel[1], LOW);
-      digitalWrite(lampBitSel[2], HIGH);
+      digitalWrite(lampBitSel[1], HIGH);
       delay(100);
       digitalWrite(lampLatchEnable, LOW); //set lamp on
-      delay(100); //wait a bit here
+      delay(150); //wait a bit here
       digitalWrite(lampLatchEnable, HIGH);
       break;
     case 6:
       digitalWrite(lampBitSel[0], LOW);
       digitalWrite(lampBitSel[1], HIGH);
-      digitalWrite(lampBitSel[2], HIGH);
-      delay(stdLatchDelay);
+      digitalWrite(lampBitSel[1], HIGH);
+      delay(100);
       digitalWrite(lampLatchEnable, LOW); //set lamp on
-      delay(stdLatchDelay); //wait a bit here
+      delay(150); //wait a bit here
       digitalWrite(lampLatchEnable, HIGH);
       break;
     case 7:
       digitalWrite(lampBitSel[0], HIGH);
       digitalWrite(lampBitSel[1], HIGH);
-      digitalWrite(lampBitSel[2], HIGH);
-      delay(stdLatchDelay);
+      digitalWrite(lampBitSel[1], HIGH);
+      delay(100);
       digitalWrite(lampLatchEnable, LOW); //set lamp on
-      delay(stdLatchDelay); //wait a bit here
+      delay(150); //wait a bit here
       digitalWrite(lampLatchEnable, HIGH);
       break;
 
@@ -584,6 +551,5 @@ void AttractLamps() {  //Attract mode lamp show
       break;
   }
   attractLmpCnt = attractLmpCnt+1;
-  
   
 }
