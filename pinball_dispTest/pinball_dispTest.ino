@@ -64,7 +64,8 @@ int sndPlay = 13;
 bool inPlay = false; //Game running or in attract mode?
 bool ballInTrough = false; //Is ball ready when starting game?
 int attractLmpCnt = 0;
-int stdLatchDelay = 75; //Std. delay for latch ops in millisecs
+int stdLatchDelay = 50; //Std. delay for latch ops in millisecs
+int stdSolPulseTime = 250; //standard time to leave sols energized in millisecs 
 int dispDataBit = 0; //default value for init cycle
 int lampDataBit = 0; //default value for init cycle
 int credits = 0;
@@ -88,7 +89,7 @@ void clearSystem() {
     digitalWrite(relays12VPins[cc], LOW);
   }
   digitalWrite(HoleSolPin, HIGH); //Just in case ball was left here
-  delay(200);
+  delay(stdSolPulseTime);
   digitalWrite(HoleSolPin, LOW);
 
   //clear sound lines
@@ -305,7 +306,7 @@ void loop() {
     //The "Game Relay" can stay on forever (not a solenoid)
     digitalWrite(gameRelayPin, HIGH);  
     digitalWrite(HScoreLmp, LOW);      
-  
+    digitalWrite(GOverLmp, LOW);    
 
     //Update display with balls left and current player score
     //Check for game over conditions and set inPlay = false if met, 0 balls left, etc
@@ -322,7 +323,7 @@ void onPinActivated(int pinNumber){
       credits = credits + 1; //coin inserted, so we have one more credit
       //Should also pulse coin meter relay
       digitalWrite(coinMtrPin, HIGH);
-      delay(500);
+      delay(300);
       digitalWrite(coinMtrPin, LOW);
       break;
     case 23: //Start sw
@@ -337,7 +338,7 @@ void onPinActivated(int pinNumber){
         ClearLamps();
         //reset drop targets
         digitalWrite(trgetBnkRstPin, HIGH);
-        delay(500);
+        delay(stdSolPulseTime);
         digitalWrite(trgetBnkRstPin, LOW);
         ballCnt = 3; //reset ball count
         topLane1 = false;
@@ -347,8 +348,9 @@ void onPinActivated(int pinNumber){
         topLane5 = false;
         topLane6 = false;
         leftTgtCnt = 0;
-        leftTgtCnt = 0;
-        digitalWrite(GOverLmp, LOW);            
+        leftTgtCnt = 0;        
+      } else {
+        Serial.println("Start btn closed, but no credits"); 
       }
       break;
     case 24: //tough SW
@@ -421,6 +423,7 @@ void onPinActivated(int pinNumber){
       break;
     case 39: //Left lane btns(11-9)
       Serial.println("Left lane btns(11-9) sw closed");
+      score = score + 100;
       break;
     case 40: //Rubber switches(22)
       Serial.println("Rubber switches(22) closed");
@@ -493,13 +496,13 @@ void AttractLamps() {  //Attract mode lamp show
     lmpLatchOffset = attractLmpCnt - 24;
   }
   else if (attractLmpCnt < 40) {
-    digitalWrite(lampLatchSel[0], HIGH);
-    digitalWrite(lampLatchSel[1], HIGH);
-    digitalWrite(lampLatchSel[2], LOW);
+    digitalWrite(lampLatchSel[0], LOW);
+    digitalWrite(lampLatchSel[1], LOW);
+    digitalWrite(lampLatchSel[2], HIGH);
     lmpLatchOffset = attractLmpCnt - 32;
   }  
   else {
-    digitalWrite(lampLatchSel[0], LOW);
+    digitalWrite(lampLatchSel[0], HIGH);
     digitalWrite(lampLatchSel[1], LOW);
     digitalWrite(lampLatchSel[2], HIGH);
     lmpLatchOffset = attractLmpCnt - 40;
