@@ -57,6 +57,24 @@ int lampBitSel[] = {15,16,17};
 int lampLatchEnable = 18;
 int lampLatchSel[] = {21,20,19}; //Driver board has 6 latches for 3 banks, but currently only two banks used, so only actually need 4 latches -> 2 select lines
 
+int lamp1 = 0;
+int lamp2 = 1;
+
+//First 3 digits are latch adr, next 3 are bit adr. Treat as binary values, 0 or 1 only.
+int lampMap[32][6] =  { {0, 0, 0, 0, 0, 0}, {0, 0, 0, 1, 0, 0}, {0, 0, 0, 0, 1, 0}, {0, 0, 0, 1, 1, 0},    //lamps 0-3
+                        {0, 0, 0, 0, 0, 1}, {0, 0, 0, 1, 0, 1}, {0, 0, 0, 0, 1, 1}, {0, 0, 0 , 1, 1, 1},   //lamps 4-7
+                        {1, 0, 0, 0, 0, 0}, {1, 0, 0, 1, 0, 0}, {1, 0, 0, 0, 1, 0}, {1, 0, 0, 1, 1, 0},    //lamps 8-11
+                        {1, 0, 0, 0, 0, 1}, {1, 0, 0, 1, 0, 1}, {1, 0, 0, 0, 1, 1}, {1, 0, 0 , 1, 1, 1}    //lamps 12-15
+                        {0, 1, 0, 0, 0, 0}, {0, 1, 0, 1, 0, 0}, {0, 1, 0, 0, 1, 0}, {0, 1, 0, 1, 1, 0},    //lamps 16-19
+                        {0, 1, 0, 0, 0, 1}, {0, 1, 0, 1, 0, 1}, {0, 1, 0, 0, 1, 1}, {0, 1, 0 , 1, 1, 1},   //lamps 20-23
+                        {1, 1, 0, 0, 0, 0}, {1, 1, 0, 1, 0, 0}, {1, 1, 0, 0, 1, 0}, {1, 1, 0, 1, 1, 0},    //lamps 24-27
+                        {1, 1, 0, 0, 0, 1}, {1, 1, 0, 1, 0, 1}, {1, 1, 0, 0, 1, 1}, {1, 1, 0 , 1, 1, 1} }; //lamps 28-31
+
+// do something like ToggleLamp(int state, int lampMap[lamp1]){} to turn individual lamps on or off. 
+
+
+
+
 int sndSel[] = {8, 9, 10, 11, 12};
 int sndPlay = 13;
 
@@ -315,7 +333,7 @@ void loop() {
 
 
 
-void onPinActivated(int pinNumber){
+void onPinActivated(int pinNumber) {
   // do something according to the _pinNR that is closed
   switch (pinNumber) {
     case 22: //Coin sw
@@ -430,13 +448,13 @@ void onPinActivated(int pinNumber){
       score = score + 10;
       break;
 
-        default:
-          Serial.println("...");
-          Serial.println("this sw not defined yet:");
-          Serial.println(pinNumber);
-          Serial.println("...");
-          break;
-    }
+    default:
+      Serial.println("...");
+      Serial.println("this sw not defined yet:");
+      Serial.println(pinNumber);
+      Serial.println("...");
+      break;
+  }
 }
 
 void onPinDeactivated(int pinNumber){
@@ -447,11 +465,11 @@ void onPinDeactivated(int pinNumber){
       //play some sound effect here
       break;
     default:
-        Serial.println("...");
-        Serial.println("this sw doesnt do anything when released:");
-        Serial.println(pinNumber);
-        Serial.println("...");
-        break;
+      Serial.println("...");
+      Serial.println("this sw doesnt do anything when released:");
+      Serial.println(pinNumber);
+      Serial.println("...");
+      break;
   }
 }
 
