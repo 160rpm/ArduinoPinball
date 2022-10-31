@@ -7,7 +7,7 @@ char getHL[2][5] = {"LOW", "HIGH"};
 
 int creditStartLmp = 0;
 int shootAgnLmp = 1;
-int extBallLmps = 2;
+int outlaneLmps = 2;
 int bonus2xLmp = 3;
 int bonus3xLmp = 4;
 int bonus4xLmp = 5;
@@ -24,11 +24,11 @@ int bonus8kLmp = 15;
 int bonus6kLmp = 16;	
 int bonus4kLmp = 17;	
 int bonus2kLmp = 18;	
-int fireOutrLmps = 19;
-int fireInnrLmps = 20;
-int fireCenterLmp = 21;
-int rightLne1Lmp = 22;
-int rightLne2Lmp = 23;
+int specialOutrLmps = 19;
+int specialInnrLmps = 20;
+int specialCenterLmp = 21;
+int rightLne3kLmp = 22;
+int rightLne5kLmp = 23;
 int rightTgtsLmps = 24;	
 int lftTgtsLmps = 25;	
 int lftRollovrLmps = 26;	
@@ -42,7 +42,7 @@ int lampStates[] = {0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  //Bank 1
                     0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0}; //Bank 2
 
 //First 3 digits are latch adr, next 3 are bit adr. Treat as binary values, 0 or 1 only. 
-//these need to be updated to the right addresses later, as the lamp driver board is wired up a bit randomly
+//these need to be updated to the "right" addresses, as the lamp driver board is wired up a bit randomly
 int lampMap[32][6] =  { {0, 0, 0, 0, 0, 0}, {0, 0, 0, 1, 0, 0}, {0, 0, 0, 0, 1, 0}, {0, 0, 0, 1, 1, 0},    //lamps 0-3
                         {0, 0, 0, 0, 0, 1}, {0, 0, 0, 1, 0, 1}, {0, 0, 0, 0, 1, 1}, {0, 0, 0 , 1, 1, 1},   //lamps 4-7
                         {1, 0, 0, 0, 0, 0}, {1, 0, 0, 1, 0, 0}, {1, 0, 0, 0, 1, 0}, {1, 0, 0, 1, 1, 0},    //lamps 8-11
@@ -53,8 +53,8 @@ int lampMap[32][6] =  { {0, 0, 0, 0, 0, 0}, {0, 0, 0, 1, 0, 0}, {0, 0, 0, 0, 1, 
                         {1, 1, 0, 0, 0, 1}, {1, 1, 0, 1, 0, 1}, {1, 1, 0, 0, 1, 1}, {1, 1, 0 , 1, 1, 1} }; //lamps 28-31
 
 
-//state is 0 or 1, on or off. lampNo is the lamps number. 
-//Used to pick a record from lampMap[32][6] containing the address data for the lamp
+//state is 0 or 1, on or off. lampNo is the lamp's number. 
+//Used to pick a record from lampMap[32][6] containing the address data for the lamp bit
 SetLamp(int state, int lampNo) {
     digitalWrite(lampLatchEnable, HIGH); //always deselect latches before setting addresses  
     digitalWrite(lampLatchSel[0], getHL[lampMap[lampNo][0]]);
