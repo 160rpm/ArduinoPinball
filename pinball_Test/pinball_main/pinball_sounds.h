@@ -1,5 +1,6 @@
 int sndSel[] = {8, 9, 10, 11};
 int sndPlay = 12;
+int stdLatchSndDelay = 1;
 
 void ClearSoundPins() {
   digitalWrite(sndPlay, HIGH); //Enable is active LOW
@@ -17,7 +18,7 @@ void PlaySound(int sound) { //Can play 10 sounds, so sound is 0-9
       digitalWrite(sndSel[2], LOW);
       digitalWrite(sndSel[3], LOW);
       digitalWrite(sndPlay, LOW); //start playing
-      delay(stdLatchDelay);
+      delay(stdLatchSndDelay);
       digitalWrite(sndPlay, HIGH);
       break;
     case 1: //now we start
@@ -26,7 +27,7 @@ void PlaySound(int sound) { //Can play 10 sounds, so sound is 0-9
       digitalWrite(sndSel[2], LOW);
       digitalWrite(sndSel[3], LOW);
       digitalWrite(sndPlay, LOW); //start playing
-      delay(stdLatchDelay);
+      delay(stdLatchSndDelay);
       digitalWrite(sndPlay, HIGH);
       break;
     case 2: //you ruined the experiment
@@ -35,7 +36,7 @@ void PlaySound(int sound) { //Can play 10 sounds, so sound is 0-9
       digitalWrite(sndSel[2], LOW);
       digitalWrite(sndSel[3], LOW);
       digitalWrite(sndPlay, LOW); //start playing
-      delay(stdLatchDelay);
+      delay(stdLatchSndDelay);
       digitalWrite(sndPlay, HIGH);
       break;
     case 3: //Go into the future 
@@ -44,7 +45,7 @@ void PlaySound(int sound) { //Can play 10 sounds, so sound is 0-9
       digitalWrite(sndSel[2], LOW);
       digitalWrite(sndSel[3], LOW);
       digitalWrite(sndPlay, LOW); //start playing
-      delay(stdLatchDelay);
+      delay(stdLatchSndDelay);
       digitalWrite(sndPlay, HIGH);
       break;
     

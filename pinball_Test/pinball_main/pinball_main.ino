@@ -1,8 +1,9 @@
+#include "pinball_display.h"
+#include "pinball_lamps.h"
+#include "pinball_sounds.h"
 #include "FTDebouncer.h"
-#include "pinball_lamps.ino"
-#include "pinball_display.ino"
-#include "pinball_sounds.ino"
 FTDebouncer pinDebouncer(30);
+
 
 int switchIN[] = {22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40, 41,42, 43, 44, 45, 46, 47, 48, 49, 50,51,52,53};  
 int inputCnt = 32; //Only 22-40 used atm.
@@ -44,15 +45,16 @@ int trgetBnkRstPin = 57;
 
 // Bank1 is active HIGH
 int relays12VPins[] = {0, 1, 2, 3, 4, 5, 6, 7}; int relays12Vcnt = 8;
-int gOverLmp = 0;
-int hScoreLmp = 1;
-int tiltLmp = 2;
-int coinMtrPin = 6; //5V feed on this relay
-int topLaneLmp6 = 7; //5V feed on this relay
+
+//int hScoreLmp = 1;
+
+
+
+
 
 bool inPlay = false; //Game running or in attract mode?
 bool ballInTrough = false; //Is ball ready when starting game?
-int attractLmpCnt = 0;
+
 long attractTimer = 0L;
 int stdLatchDelay = 1; //Std. delay for latch ops in millisecs
 int stdSolPulseTime = 250; //standard time to leave sols energized in millisecs 
@@ -60,7 +62,7 @@ int stdSolPulseTime = 250; //standard time to leave sols energized in millisecs
 //int lampDataBit = 0; //default value for init cycle
 int credits = 0;
 //int highScore = 0;
-int score[] = {0, 0, 0, 0, 0, 0};
+
 int ballCnt = 0; //Game only contains one physical ball
 bool shootAgain = false;
 bool ballSaved = false;
@@ -88,12 +90,12 @@ void ClearSystem() {
   }
 
   ClearLamps();
-  ClearAllDisp();
+  ClearDispAll();
   ClearSoundPins();
   
-  digitalWrite(HoleSolPin, HIGH); //Just in case ball was left here
+  digitalWrite(holeSolPin, HIGH); //Just in case ball was left here
   delay(stdSolPulseTime);
-  digitalWrite(HoleSolPin, LOW);
+  digitalWrite(holeSolPin, LOW);
 
 
 }
@@ -157,19 +159,19 @@ void loop() {
         case 0: 
           SetLamp(0, specialOutrLmps);
           SetLamp(1, specialInnrLmps);
-          SetLamp(1, specialCenterLmp);
+          SetLamp(1, specialCnterLmp);
           specialScroll++;
           break;
         case 1:
           SetLamp(1, specialOutrLmps);
           SetLamp(0, specialInnrLmps);
-          SetLamp(1, specialCenterLmp);
+          SetLamp(1, specialCnterLmp);
           specialScroll++;
           break;
         case 2:
           SetLamp(1, specialOutrLmps);
           SetLamp(1, specialInnrLmps);
-          SetLamp(0, specialCenterLmp);
+          SetLamp(0, specialCnterLmp);
           specialScroll = 0;
           break;
       }
@@ -207,7 +209,7 @@ void onPinActivated(int pinNumber) {
           highScore = score;
         } */
         
-        score = 0; ClearScoreDisp();
+        ScoreReset(); ClearDispScore();
         
         ClearLamps();
         
@@ -308,7 +310,7 @@ void onPinActivated(int pinNumber) {
           Score3k();   
           break;
         case 2:
-          Score5K();
+          Score5k();
           break;
       }
       break;
@@ -404,7 +406,7 @@ void SpecialReset() {
   topLane6 = false; digitalWrite(topLaneLmp6, LOW);
   rightLaneTgtValue = 0; SetLamp(1, rightLne3kLmp); SetLamp(1, rightLne5kLmp);
   SetLamp(0, specialOutrLmps); SetLamp(0, specialInnrLmps); //Set these lamps on, hole gives 5000 pts.
-  SetLamp(1, int specialCenterLmp); //special not lit yet
+  SetLamp(1, specialCnterLmp); //special not lit yet
 }
 
 void BonusCollect() {
@@ -425,11 +427,11 @@ void IncBonusStep() {
     case 2: 
       bonusStep++;
       SetLamp(1, bonus2kLmp);
-      SetLamp(0, bonus3kLmp);
+      SetLamp(0, bonus3KLmp);
       break;
     case 3: 
       bonusStep++;
-      SetLamp(1, bonus3kLmp);
+      SetLamp(1, bonus3KLmp);
       SetLamp(0, bonus4kLmp);
       break;
     case 4: 
@@ -531,4 +533,13 @@ void SpecialCheck() {
     topLane5 = false; SetLamp(1, topRollovrLmp5);
     topLane6 = false; digitalWrite(topLaneLmp6, LOW); */
    }
+}
+
+void ScoreReset() {
+  score[0] = 0;  
+  score[1] = 0;
+  score[2] = 0;
+  score[3] = 0;
+  score[4] = 0;
+  score[5] = 0;
 }
