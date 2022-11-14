@@ -2,11 +2,11 @@
 #include "pinball_lamps.h"
 #include "pinball_sounds.h"
 #include "FTDebouncer.h"
-FTDebouncer pinDebouncer(50);
+FTDebouncer pinDebouncer(10);
 
 
 int switchIN[] = {22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40};  
-int inputCnt = 19; //Only 22-40 used atm.
+int inputCnt = 19; 
 
 int coinSW = 22;
 int startSW = 23;
@@ -32,10 +32,11 @@ int rubber22SW = 40;
 int outputs1[] = {2,3,4,5,6,7, 8,9,10,11,12, 13, 14, 15, 16,17,18,19,20, 21};
 int output1Cnt = 20;
 
-int outputs2[] = {53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 65, 69};
-int output2Cnt = 12;
+int outputs2[] = {54, 55, 56, 57, 58, 59, 60, 61, 62, 65, 69};
+int output2Cnt = 11;
 
-int outputs3[] = {42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53}; //Bank1 5V+ digit 7 direct control
+//Bank1 + Disp. digit 7 direct control
+int outputs3[] = {42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53}; 
 int output3Cnt = 12;
 
 // Bank1 is active HIGH
@@ -80,24 +81,25 @@ int rightLaneTgtValue = 0; //step right lane target value
 int bonusStep = 0;
 int bonusMult = 0;
 
+//For multiple scores
+int score100 = 0;
+int score1k = 0;
+int score10k = 0;
+
 
 void ClearSystem() { 
   //clear relay bank 1, coil lines, game relay
   for (int cc = 0; cc < coilCnt; cc++) {
     digitalWrite(coilPins[cc], LOW);
-    digitalWrite(relays5Pins[cc], LOW);
+    digitalWrite(relays5VPins[cc], LOW);
   }
 
   ClearLamps();
   ClearDispAll();
   ClearSoundPins();
   
-  digitalWrite(holeSolPin, HIGH); //Just in case ball was left here
-  delay(stdSolPulseTime);
-  digitalWrite(holeSolPin, LOW);
+  PulseSol(holeSolPin); //Just in case ball was left here
 }
-
-
 
 void setup() { //setup code, run once:
   for (int io = 0; io < output1Cnt; io++) {
@@ -117,9 +119,9 @@ void setup() { //setup code, run once:
   
   Serial.begin(9600); //set serial monitor to same speed 
   ClearSystem();
-  //digitalWrite(gOverLmp, HIGH);
 }
 
+//               ***MAIN LOOP***
 void loop() {
   pinDebouncer.update();  //run switch inputs here
 
@@ -127,21 +129,21 @@ void loop() {
     digitalWrite(gameRelayPin, LOW); //set Game relay off (flippers + music off)
                                      //The "Game Relay" can stay on forever (not a solenoid)
 
-    
-    
-    if(credits > 0) { //start/credit lamp on if we have credits
+    if(credits > 0) { //start+credit lamp on if we have credits
     //  SetLamp(0, creditStartLmp); 
     } else {
       //SetLamp(1, creditStartLmp); 
     }
     
     //Flash the PF lamps in attract mode, once every second or something similar
-    if (attractTimer > 3000L) {
-      //AttractLamps();
-      //AttractDisp();
+    if (attractTimer > 35000L) {
+      AttractLamps();
+      AttractDisp();
+      AttractSounds();      
       //Score1(); //to test displays in attract mode
       //SetDispDigit(digitscroll, digitscroll);      
-      //Serial.println("AttractLamps timer");      
+      Serial.println("AttractTimer");
+      //SetLamp(1,20);
       attractTimer = 0L;
     } else {
       attractTimer++;      
@@ -152,32 +154,27 @@ void loop() {
     digitalWrite(gameRelayPin, HIGH);  //set Game relay on (flippers + music on)
                                        //The "Game Relay" can stay on forever (not a solenoid)   
 
-    //SpecialCheck();
-  
+    //We use this method for scoring to prevent blocking the system
+    //For instance getting 500 points would block for a moment, since Score100() would be called  times in a row without returning to main loop
+    //But now Score100() will only be called once per iteration of main loop, 
+    //and other switch inputs can be responded to. Scoring additional points would just increment the integer counters, and the resulting scores would be added to the main score counter over the following iterations
+    if (score100 > 0) {
+      Score100();
+      score100--;
+    }
+    if (score1k > 0) {
+      Score1k();
+      score1k--;
+    }    
+    if (score10k > 0) {
+      Score10k();
+      score10k--;
+    }
 
     //when special is active, scroll the special lamps
     if (special == true && attractTimer > 3000L) {
       attractTimer = 0L;
-      switch (specialScroll) { //We don't get points here, just scroll lamps
-        case 0: 
-          SetLamp(0, specialOutrLmps);
-          SetLamp(1, specialInnrLmps);
-          digitalWrite(specialCnterLmp, LOW);
-          specialScroll++;
-          break;
-        case 1:
-          SetLamp(1, specialOutrLmps);
-          SetLamp(0, specialInnrLmps);
-          digitalWrite(specialCnterLmp, LOW);
-          specialScroll++;
-          break;
-        case 2:
-          SetLamp(1, specialOutrLmps);
-          SetLamp(1, specialInnrLmps);
-          digitalWrite(specialCnterLmp, HIGH);
-          specialScroll = 0;
-          break;
-      }
+      SpecialLmpsScroll();
     } else {
       attractTimer++;
     }
@@ -198,9 +195,8 @@ void onPinActivated(int pinNumber) {
         credits = credits + 1; //coin inserted, so we have one more credit
         SetDispCredit(credits);
         SetLamp(0, creditStartLmp);
-        digitalWrite(coinMtrPin, HIGH); //Pulse coin meter
-        delay(stdSolPulseTime);
-        digitalWrite(coinMtrPin, LOW);
+
+        PulseSol(coinMtrPin); //Pulse coin meter
       }      
       break;
     case 23: //Start sw
@@ -213,51 +209,48 @@ void onPinActivated(int pinNumber) {
         }
 
         ScoreReset(); ClearDispScore(); ClearLamps();
-        
-        //reset drop targets
-        digitalWrite(trgetBnkRstPin, HIGH);
-        delay(stdSolPulseTime);
-        digitalWrite(trgetBnkRstPin, LOW);
-        
-        ballCnt = 3; SetDispBall(ballCnt); //reset ball count
-        
         BonusReset(); SpecialReset(); LanesReset();
-
-        inPlay = true;
-        PlaySound(1); //Now we start
+        
+        PulseSol(trgetBnkRstPin);//reset drop targets
+        
+        ballCnt = 3; SetDispBall(ballCnt); //reset ball count on game start
+        
+        inPlay = true; PlaySound(1); //Now we start
+        
       } else {
         Serial.println("Start btn closed, but no credits"); 
-        //Play "another coin please"
+        PlaySound(4); //Play "another coin please"
       }
       break;
+    
     case 24: //trough SW
       Serial.println("trough sw closed");
       ballInTrough = true;
       ballCnt--; SetDispBall(ballCnt);
-      BonusCollect(); //Ball drained, so collect bonus even if game not over. 
+      BonusCollect(); //Ball drained, so collect bonus even if game not over. G.Over state checked from main loop
       break;
+    
     case 25: //Hole SW
       Serial.println("Hole sw closed");
-      delay(500);
-      
-      //play some sound effect
       
       if (special == true) {
-        //Collect Special here and reset Special params.
+        PlaySound(7); //SFX
+        //CollectSpecial here and reset Special state
       }
 
-      //Kicks ball back out
-      digitalWrite(holeSolPin, HIGH); 
-      delay(stdSolPulseTime);
-      digitalWrite(holeSolPin, LOW);
+      score1k = score1k + 5;
+      PulseSol(holeSolPin);//Kicks ball back out
       break;
+
     case 26: //outlanes
       Serial.println("Outlanes sw closed"); //Ball drained
+      PlaySound(5);
       if (ballSaved == true) { //Give ball back?
-        ballCnt++;
+        ballCnt++; SetDispBall(ballCnt);
         ballSaved = false; SetLamp(1, outlaneLmps);
       }       
       break;
+
     case 27: //inlanes
       Serial.println("Inlanes sw closed");
       IncBonusStep();
@@ -288,16 +281,15 @@ void onPinActivated(int pinNumber) {
       Serial.println("D.T. all down(27-24) sw closed");
       ballSaved = true; SetLamp(0, outlaneLmps);
       IncBonusStep();
+      PlaySound(3); //Go to the future
+      PulseSol(trgetBnkRstPin);//reset drop targets
+      break;      
 
-      digitalWrite(trgetBnkRstPin, HIGH); //reset targets
-      delay(stdSolPulseTime);
-      digitalWrite(trgetBnkRstPin, LOW);
-
-      break;                                      
     case 31: //Shooter lane(20)
       Serial.println("Shooter lane(20) sw closed");
       //Dont do anything till ball is launched
-      break;        
+      break;
+
     case 32: //Single st. target right lane(29)
       Serial.println("Single st. target(29) sw closed");
       switch (rightLaneTgtValue) { //We just get points here, value doesn't change
@@ -305,57 +297,60 @@ void onPinActivated(int pinNumber) {
           Score1();
           break;
         case 1:
-          Score3k();   
+          score1k = score1k + 3; 
           break;
         case 2:
-          Score5k();
+          score1k = score1k + 5; 
           break;
       }
+      PlaySound(7);
       break;
 
     case 33: //Top lane 1(42)
       Serial.println("Top lane 1(42)  sw closed");
       topLane1 = true; SetLamp(0, topRollovrLmp1);
-      Score500();
+      score100 = score100 + 5; 
       SpecialCheck();
       break;
     case 34: //Top lane 2
       Serial.println("Top lane 2 sw closed");
       topLane2 = true; SetLamp(0, topRollovrLmp2);             
-      Score500();
+      score100 = score100 + 5; 
       SpecialCheck();
       break;
     case 35: //Top lane 3
       Serial.println("Top lane 3  sw closed");
       topLane3 = true; SetLamp(0, topRollovrLmp3);                    
-      Score500();
+      score100 = score100 + 5; 
       SpecialCheck();
       break;
     case 36: //Top lane 4
       Serial.println("Top lane 4  sw closed");
       topLane4 = true; SetLamp(0, topRollovrLmp4);           
-      Score500();
+      score100 = score100 + 5; 
       SpecialCheck();
       break;
     case 37: //Top lane 5         
       Serial.println("Top lane 5 sw closed");
       topLane5 = true; SetLamp(0, topRollovrLmp5);           
-      Score500();
+      score100 = score100 + 5; 
       SpecialCheck();
       break;
     case 38: //Top lane 6(37)
       Serial.println("Top lane 6(37)  sw closed");
       topLane6 = true; digitalWrite(topLaneLmp6, HIGH);
-      Score500();
+      score100 = score100 + 5; 
       SpecialCheck();
+
       break;
     case 39: //Left lane btns(11-9)
       Serial.println("Left lane btns(11-9) sw closed");
       SetLamp(0, lftRollovrLmps);
       IncBonusMult();
-      Score1000();
+      Score1k();
       SetLamp(1, lftRollovrLmps);
       break;
+
     case 40: //Rubber switches(22)
       Serial.println("Rubber switches(22) closed");
       Score1();
@@ -377,10 +372,12 @@ void onPinDeactivated(int pinNumber) {
       Serial.println("trough sw released");
       ballInTrough = false;
       break;
+
     case 31: //Shooter lane sw
       Serial.println("Shooter lane sw released");
-      //play some sound effect here
+      PlaySound(7);
       break;
+
     default:
       Serial.println(" ");
       Serial.println("this sw doesnt do anything when released:");
@@ -390,9 +387,10 @@ void onPinDeactivated(int pinNumber) {
   }
 }
 
-void CheckGOver() {
+void CheckGOver() { //Check for game over conditions and set inPlay = false if met, 0 balls left, etc
   if (ballCnt == 0 && ballInTrough == true) { //Game is over
-  //Check for game over conditions and set inPlay = false if met, 0 balls left, etc
+    PlaySound(2); //you ruined the experiment
+    inPlay = false;
   }
 }
 
@@ -412,7 +410,6 @@ void SpecialReset() {
   topLane4 = false; SetLamp(1, topRollovrLmp4);
   topLane5 = false; SetLamp(1, topRollovrLmp5);
   topLane6 = false; digitalWrite(topLaneLmp6, LOW);
-  rightLaneTgtValue = 0; SetLamp(1, rightLne3kLmp); digitalWrite(rightLne5kLmp, LOW);
   SetLamp(0, specialOutrLmps); SetLamp(0, specialInnrLmps); 
   digitalWrite(specialCnterLmp, LOW); 
 }
@@ -426,8 +423,10 @@ void LanesReset() {
 }
 
 void BonusCollect() {
-  //collect bonus points when ball drains
-  BonusReset();
+  if (inPlay == true) {
+    //collect bonus points when ball drains if game running
+    BonusReset();
+  }
 }
 
 //We don't get points here, just change states. Points given when ball drains
@@ -551,6 +550,7 @@ void SpecialCheck() {
     topLane4 = false; SetLamp(1, topRollovrLmp4);
     topLane5 = false; SetLamp(1, topRollovrLmp5);
     topLane6 = false; digitalWrite(topLaneLmp6, LOW);
+    PlaySound(6); //You have the Special
   }
 }
 
@@ -574,12 +574,41 @@ void StepRightLaneVal() { //We dont get points here, just set value of target in
   }
 }
 
-//Resets score counter array
+void SpecialLmpsScroll() {
+  switch (specialScroll) { //We don't get points here, just scroll lamps
+    case 0: 
+      SetLamp(0, specialOutrLmps);
+      SetLamp(1, specialInnrLmps);
+      digitalWrite(specialCnterLmp, LOW);
+      specialScroll++;
+      break;
+    case 1:
+      SetLamp(1, specialOutrLmps);
+      SetLamp(0, specialInnrLmps);
+      digitalWrite(specialCnterLmp, LOW);
+      specialScroll++;
+      break;
+    case 2:
+      SetLamp(1, specialOutrLmps);
+      SetLamp(1, specialInnrLmps);
+      digitalWrite(specialCnterLmp, HIGH);
+      specialScroll = 0;
+      break;
+  }
+}
+
+//Resets score counters
 void ScoreReset() {
-  score[0] = 0;  
+  score[0] = 0;
   score[1] = 0;
-  score[2] = 0;
-  score[3] = 0;
-  score[4] = 0;
+  score[2] = 0; score100 = 0;
+  score[3] = 0; score1k = 0;
+  score[4] = 0; score10k = 0;
   score[5] = 0;
+}
+
+void PulseSol(int solNo) {
+  digitalWrite(solNo, HIGH);
+  delay(stdSolPulseTime);
+  digitalWrite(solNo, LOW);
 }

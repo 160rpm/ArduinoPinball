@@ -1,7 +1,7 @@
 int dispDataLn = 47;
 int dispBitSel[] = {49,51, 53};
 int dispLatchEnable = 46;
-int stdDispLatchDelay = 30;
+int stdDispLatchDelay = 0;
 int dispLatchSel[] = {52, 50}; //8 digits -> 4 latches -> 2 bits. L0, L1
 //char dispHL[2][5] = {"LOW", "HIGH"};
 int score[] = {0, 0, 0, 0, 0, 0};
@@ -20,7 +20,7 @@ int decimal2BCD[10][4] = { {0, 0, 0, 0}, {1, 0, 0, 0}, {0, 1, 0, 0}, {1, 1, 0, 0
 
 
 
-void ClearDispDigit(int digit) { // digits 0-7, score 0-5, ball 6, credit 7
+void ClearDispDigit(int digit) { // digits 0-6, score 0-5, ball 6, credit is addressed directly
   digitalWrite(dispLatchEnable, HIGH); //always deselect latches before setting addresses  
   digitalWrite(dispDataLn, LOW); //Clearing disp so setting all bits low
 
@@ -105,7 +105,36 @@ void ClearDispBall() {
 }
 
 void ClearDispCredit() {
-  ClearDispDigit(7);
+  digitalWrite(42, LOW);
+  digitalWrite(43, LOW);
+  digitalWrite(44, LOW);
+  digitalWrite(45, LOW);
+}
+
+void SetDispCredit(int value) { //Values 0-9
+  if (decimal2BCD[value][0] == 0) {
+    digitalWrite(42, LOW);              
+  } else {
+    digitalWrite(42, HIGH);    
+  }
+
+  if (decimal2BCD[value][1] == 0) {
+    digitalWrite(43, LOW);              
+  } else {
+    digitalWrite(43, HIGH);    
+  } 
+  
+  if (decimal2BCD[value][2] == 0) {
+    digitalWrite(44, LOW);              
+  } else {
+    digitalWrite(44, HIGH);    
+  } 
+  
+  if (decimal2BCD[value][3] == 0) {
+    digitalWrite(45, LOW);              
+  } else {
+    digitalWrite(45, HIGH);    
+  }
 }
 
 void SetDispDigit(int digit, int value) { // digits 0-7, score is 0-5, ball 6, credit 7. Value must be single digit here.
@@ -210,13 +239,10 @@ void SetDispBall(int balls) {
   SetDispDigit(6, balls);
 }
 
-void SetDispCredit(int credits) {
-  SetDispDigit(7, credits);
-}
-
 void Score100k() {
   if (score[5] == 9) {
-    //score[5] = 0; SetDispDigit(5, score[5]);
+    //No more digits to roll over to, so disp. will just stay at 9xxxxx once it maxes out. 
+    //Another solution would be to add a "rollover" lamp, and reset this digit when score rolls over.
   } else {
     score[5]++; SetDispDigit(5, score[5]);
   }
@@ -231,7 +257,7 @@ void Score10k() {
   }
 }
 
-void Score1000() {
+void Score1k() {
   if (score[3] == 9) {
     score[3] = 0; SetDispDigit(3, score[3]);
     Score10k(); //Rollover to next digit
@@ -243,7 +269,7 @@ void Score1000() {
 void Score100() {
   if (score[2] == 9) {
     score[2] = 0; SetDispDigit(2, score[2]);
-    Score1000(); //Rollover to next digit
+    Score1k(); //Rollover to next digit
   } else {
     score[2]++; SetDispDigit(2, score[2]);
   }
@@ -305,15 +331,17 @@ void AttractDisp() {
     //SetDispDigit(0, attractDispCnt);                
   } else {
     
-  
-    SetDispDigit(0, attractDispCnt-1);  // digits 0-7, score is 0-5, ball 6, credit 7. Value must be single digit here.
-    SetDispDigit(1, attractDispCnt-1);  // digits 0-7, score is 0-5, ball 6, credit 7. Value must be single digit here.    
-    SetDispDigit(2, attractDispCnt-1);  // digits 0-7, score is 0-5, ball 6, credit 7. Value must be single digit here.    
+    SetDispDigit(0, attractDispCnt-1);  // digits 0-6, score is 0-5, ball 6, 
+    SetDispDigit(1, attractDispCnt-1);  // digits 0-6, score is 0-5, ball 6, 
+    SetDispDigit(2, attractDispCnt-1);  // digits 0-6, score is 0-5, ball 6,   
     SetDispDigit(3, attractDispCnt-1); 
     SetDispDigit(4, attractDispCnt-1); 
     SetDispDigit(5, attractDispCnt-1); 
     SetDispDigit(6, attractDispCnt-1); 
-    SetDispDigit(7, attractDispCnt-1); 
+    digitalWrite(42, LOW);  
+    digitalWrite(43, HIGH);    
+    digitalWrite(44, HIGH);
+    digitalWrite(45, LOW);        
     
      //int outputs3[] = {46, 47, 48, 49, 50, 51, 52, 53};
     // digitalWrite(46, LOW); //62    

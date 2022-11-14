@@ -1,4 +1,4 @@
-int lampLatchDelay = 1;
+int lampLatchDelay = 0;
 int lampDataLn = 14;
 int lampBitSel[] = {15,16,17};
 int lampLatchEnable = 18;
@@ -11,10 +11,9 @@ int rightTgtLmpsState = 1;
 //G. Over lamp now tied to Game Relay, so lamp on when Game Relay is off
 //int gOverLmp = 0; //arduino pin# for relay control
 
-//int tiltLmp = 2;  //arduino pin# for relay control
-int topLaneLmp6 = 7; //arduino pin# for relay control, 5V feed on this relay
+int topLaneLmp6 = 7;     //arduino pin# for relay control, 5V feed on this relay
 int specialCnterLmp = 6; //arduino pin# for relay control, 5V feed on this relay
-int rightLne5kLmp = 5;
+int rightLne5kLmp = 5;   //arduino pin# for relay control, 5V feed on this relay
 
 int creditStartLmp = 0;
 int shootAgnLmp = 15;
@@ -33,9 +32,9 @@ int bonus10kLmp = 4;
 int bonus20kLmps = 10;
 int bonus8kLmp = 11;
 int bonus6kLmp = 16;	
-int bonus4kLmp = 30;	
+int bonus4kLmp = 31;	
 int bonus2kLmp = 17;	
-int specialOutrLmps = 29;
+int specialOutrLmps = 30;
 int specialInnrLmps = 18;
 int rightLne3kLmp = 19;
 int rightTgtsLmps = 23;  
@@ -141,9 +140,6 @@ void ClearLamps() { //CLEAR LAMP RAM (All off)
   digitalWrite(topLaneLmp6, LOW); //5V
   digitalWrite(specialCnterLmp, LOW); //5V Bank 1 act. HIGH
   digitalWrite(rightLne5kLmp, LOW); //5V Bank 1 act. HIGH  
-
-  leftTgtLmps = 1;
-  rightTgtLmps = 1;
   
   for (int i = 0; i < 32; i++) { //Clear all latches
     //int state = 1; 
@@ -158,12 +154,12 @@ void AttractLamps() {  //Attract mode lamp show
   digitalWrite(rightLne5kLmp, HIGH); //5V Bank 1 act. HIGH
   //Serial.println("AttractLamps now, attractLmpCnt:  ");
   //Serial.println(attractLmpCnt);
+  int lmpNr = 31;
   if (attractLmpCnt > 31) {
-    attractLmpCnt = 0;
+    attractLmpCnt=0;
     ClearLamps();
   }
-  
-  SetLamp(0, attractLmpCnt);//Lamp relays trigger on gnd, and we want to turn lamps on
+    SetLamp(0, attractLmpCnt);//Lamp relays trigger on gnd, and we want to turn lamps on
 
-  attractLmpCnt = attractLmpCnt+1;
+  attractLmpCnt++;
 }
