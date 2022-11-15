@@ -8,13 +8,12 @@ int attractLmpCnt = 0;
 int leftTgtLmpsState = 1;
 int rightTgtLmpsState = 1;
 
-//G. Over lamp now tied to Game Relay, so lamp on when Game Relay is off
-//int gOverLmp = 0; //arduino pin# for relay control
+//int gOverLmp = 0; //G. Over lamp now tied to Game Relay, so lamp on when Game Relay is off
+int topLaneLmp6Pin = 7;     //arduino pin# for relay control, 5V feed on this relay
+int specialCnterLmpPin = 6; //arduino pin# for relay control, 5V feed on this relay
+int rightLne5kLmpPin = 5;   //arduino pin# for relay control, 5V feed on this relay
 
-int topLaneLmp6 = 7;     //arduino pin# for relay control, 5V feed on this relay
-int specialCnterLmp = 6; //arduino pin# for relay control, 5V feed on this relay
-int rightLne5kLmp = 5;   //arduino pin# for relay control, 5V feed on this relay
-
+//These values used for lookups in lampMap[][6], to
 int creditStartLmp = 0;
 int shootAgnLmp = 15;
 int outlaneLmps = 1;
@@ -23,17 +22,16 @@ int bonus3xLmp = 2;
 int bonus4xLmp = 13;
 int bonus5xLmp = 3;
 int bonus1kLmp = 12;
+int bonus2kLmp = 17;	
 int bonus3KLmp = 7;
+int bonus4kLmp = 31;	
 int bonus5kLmp = 8;
+int bonus6kLmp = 16;	
 int bonus7kLmp = 6;
+int bonus8kLmp = 11;
 int bonus9kLmp = 9;
 int bonus10kLmp = 4;
-//int bBonus10kLmp = 5;
 int bonus20kLmps = 10;
-int bonus8kLmp = 11;
-int bonus6kLmp = 16;	
-int bonus4kLmp = 31;	
-int bonus2kLmp = 17;	
 int specialOutrLmps = 30;
 int specialInnrLmps = 18;
 int rightLne3kLmp = 19;
@@ -46,12 +44,12 @@ int topRollovrLmp3 = 26;
 int topRollovrLmp4 = 20;	
 int topRollovrLmp5 = 27;	
 
-int lampStates[] = {0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  //Bank 1
-                    0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, //Bank 2
-                    0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0}; //Bank  3                   
+//This endedup not being used
+//int lampStates[] = {0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  //Bank 1
+                    //0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, //Bank 2
+                    //0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0}; //Bank  3                   
 
 //First 3 digits are latch adr, next 3 are bit adr. Treat as binary values, 0 or 1 only. 
-//these need to be updated to the "right" addresses, as the lamp driver board is wired up a bit randomly
 int lampMap[32][6] =  { {0, 0, 0, 0, 0, 0}, {0, 0, 0, 1, 0, 0}, {0, 0, 0, 0, 1, 0}, {0, 0, 0, 1, 1, 0},    //lamps 0-3
                         {0, 0, 0, 0, 0, 1}, {0, 0, 0, 1, 0, 1}, {0, 0, 0, 0, 1, 1}, {0, 0, 0 , 1, 1, 1},   //lamps 4-7
                         {1, 0, 0, 0, 0, 0}, {1, 0, 0, 1, 0, 0}, {1, 0, 0, 0, 1, 0}, {1, 0, 0, 1, 1, 0},    //lamps 8-11

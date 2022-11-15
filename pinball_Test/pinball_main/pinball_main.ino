@@ -73,10 +73,10 @@ bool topLane3 = false;
 bool topLane4 = false;
 bool topLane5 = false;
 bool topLane6 = false;
-bool special = false;
+bool special  = false;
 int specialScroll = 0; //for anim Special lights
 
-int rightLaneTgtValue = 0; //step right lane target value
+int rightLaneTgtValue = 0; //steps right lane target value
 
 int bonusStep = 0;
 int bonusMult = 0;
@@ -93,7 +93,6 @@ void ClearSystem() {
     digitalWrite(coilPins[cc], LOW);
     digitalWrite(relays5VPins[cc], LOW);
   }
-
   ClearLamps();
   ClearDispAll();
   ClearSoundPins();
@@ -101,7 +100,7 @@ void ClearSystem() {
   PulseSol(holeSolPin); //Just in case ball was left here
 }
 
-void setup() { //setup code, run once:
+void setup() { //setup code, run once on power-on
   for (int io = 0; io < output1Cnt; io++) {
     pinMode(outputs1[io], OUTPUT);
   }
@@ -189,7 +188,8 @@ void loop() {
 void onPinActivated(int pinNumber) {
   // do something according to the _pinNR that is closed
   switch (pinNumber) {
-    case 22: //Coin sw
+
+    case coinSW:
       Serial.println("Coin sw closed");
       if (credits < 9) {
         credits = credits + 1; //coin inserted, so we have one more credit
@@ -227,18 +227,21 @@ void onPinActivated(int pinNumber) {
       Serial.println("trough sw closed");
       ballInTrough = true;
       ballCnt--; SetDispBall(ballCnt);
-      BonusCollect(); //Ball drained, so collect bonus even if game not over. G.Over state checked from main loop
+      PlaySound(5);     //Ball drained, so play drained soundfx
+      BonusCollect();   //On ball drain, collect bonus even if game not over. 
+                        //G.Over state checked from main loop, G.Over if ball count reaches 0, after being decreased by one here
       break;
     
     case 25: //Hole SW
       Serial.println("Hole sw closed");
       
-      if (special == true) {
+      if (special == true) { //Collect Special here and reset Special state
         PlaySound(7); //SFX
-        //CollectSpecial here and reset Special state
+        ballCnt++;
+        SpecialReset();
       }
 
-      score1k = score1k + 5;
+      score1k = score1k + 5; //Always get 5k from the hole 
       PulseSol(holeSolPin);//Kicks ball back out
       break;
 
@@ -338,7 +341,7 @@ void onPinActivated(int pinNumber) {
       break;
     case 38: //Top lane 6(37)
       Serial.println("Top lane 6(37)  sw closed");
-      topLane6 = true; digitalWrite(topLaneLmp6, HIGH);
+      topLane6 = true; digitalWrite(topLaneLmp6Pin, HIGH);
       score100 = score100 + 5; 
       SpecialCheck();
 
@@ -387,19 +390,23 @@ void onPinDeactivated(int pinNumber) {
   }
 }
 
-void CheckGOver() { //Check for game over conditions and set inPlay = false if met, 0 balls left, etc
+//Check for game over conditions and set inPlay = false if met, 0 balls left, etc
+void CheckGOver() { 
   if (ballCnt == 0 && ballInTrough == true) { //Game is over
-    PlaySound(2); //you ruined the experiment
-    inPlay = false;
+    PlaySound(2); //you ruined the experiment (Game Over)
+    inPlay = false; //Makes Main Loop switch to Attract Mode. Final score should remain on display, until new game started, right?
+  } else { //If balls left, kick ball back out
+    PulseSol(troughSolPin);
   }
 }
 
 void BonusReset() {
-  bonusStep = 0;
+  bonusStep = 0; bonusMult = 0;
   SetLamp(1, bonus2xLmp); SetLamp(1, bonus3xLmp); SetLamp(1, bonus4xLmp); SetLamp(1, bonus5xLmp);
-  SetLamp(1, bonus1kLmp); SetLamp(1, bonus3KLmp); SetLamp(1, bonus5kLmp); SetLamp(1, bonus7kLmp);
+  SetLamp(1, bonus1kLmp); SetLamp(1, bonus2kLmp); SetLamp(1, bonus3KLmp); SetLamp(1, bonus4kLmp); 
+  SetLamp(1, bonus5kLmp); SetLamp(1, bonus6kLmp); SetLamp(1, bonus7kLmp); SetLamp(1, bonus8kLmp); 
   SetLamp(1, bonus9kLmp); SetLamp(1, bonus10kLmp); SetLamp(1, bonus20kLmps);
-  SetLamp(1, bonus8kLmp); SetLamp(1, bonus6kLmp); SetLamp(1, bonus4kLmp); SetLamp(1, bonus2kLmp);
+  
 }
 
 void SpecialReset() {
@@ -409,9 +416,9 @@ void SpecialReset() {
   topLane3 = false; SetLamp(1, topRollovrLmp3);
   topLane4 = false; SetLamp(1, topRollovrLmp4);
   topLane5 = false; SetLamp(1, topRollovrLmp5);
-  topLane6 = false; digitalWrite(topLaneLmp6, LOW);
+  topLane6 = false; digitalWrite(topLaneLmp6Pin, LOW);
   SetLamp(0, specialOutrLmps); SetLamp(0, specialInnrLmps); 
-  digitalWrite(specialCnterLmp, LOW); 
+  digitalWrite(specialCnterLmpPin, LOW); 
 }
 
 void LanesReset() {
@@ -419,13 +426,32 @@ void LanesReset() {
   rightTgtLmpsState = 1;
   rightLaneTgtValue = 0;
   SetLamp(1, rightLne3kLmp);
-  digitalWrite(rightLne5kLmp, LOW);
+  digitalWrite(rightLne5kLmpPin, LOW);
 }
 
+//Bonus score is collected on ball drain, and is always in multiples of 1000. 1 x 0 to 5 x 20k
 void BonusCollect() {
-  if (inPlay == true) {
-    //collect bonus points when ball drains if game running
-    BonusReset();
+  int bonusScore = 0;
+  if (inPlay == true) { //Dont want stuff to start happening if the game isnt running
+
+    if (bonusStep > 0) {
+      if (bonusStep >= 11) {
+        bonusScore = 20;
+      } else {
+        bonusScore = bonusStep;
+      }
+
+      if (bonusMult > 0) {
+        if (bonusMult >= 4) {
+          bonusScore = bonusScore * 5;
+        } else {
+          bonusScore = bonusScore * (bonusMult+1);
+        }
+      }
+    }
+  //Bonus will be added to Score by subsequent iterations of the Main Loop
+  score1k = score1k + bonusScore; 
+  BonusReset();
   }
 }
 
@@ -483,6 +509,7 @@ void IncBonusStep() {
       SetLamp(0, bonus10kLmp);
       break;
     case 10: 
+      bonusStep++; //we need the last inc. when collecting the score
       SetLamp(1, bonus10kLmp);
       SetLamp(0, bonus20kLmps);
       break;
@@ -500,7 +527,10 @@ void IncBonusMult() {
   switch (bonusMult) {
     case 0: 
       bonusMult++;
-      SetLamp(1, bonus5kLmp);
+      SetLamp(1, bonus3xLmp);
+      SetLamp(1, bonus4xLmp);
+      SetLamp(1, bonus5xLmp);
+
       SetLamp(0, bonus2xLmp);
       break;
     case 1: 
@@ -518,30 +548,27 @@ void IncBonusMult() {
       SetLamp(1, bonus4xLmp);
       SetLamp(0, bonus5xLmp);
       break;
-    case 4: 
-      bonusMult++;
-      SetLamp(1, bonus4kLmp);
-      SetLamp(0, bonus5kLmp);
-      break;
-    case 5: 
-      SetLamp(1, bonus4kLmp);
-      SetLamp(0, bonus5kLmp);
-      //bonusMult = 0;
+    case 4: //Maxed out here 
+      SetLamp(1, bonus2xLmp);
+      SetLamp(1, bonus3xLmp);
+      SetLamp(1, bonus4xLmp);
+      SetLamp(0, bonus5xLmp);
       break;
     
     default:
       Serial.println(" ");
-      Serial.println("Bonus multiplier already maxed out");
+      Serial.println("Bonus multiplier already maxed out:");
       Serial.println(bonusMult);
       Serial.println(" ");
       break;   
   }
 }
 
+//Called when hitting either of the top rollovers
 void SpecialCheck() {
   if (topLane1 == true && topLane2 == true && topLane3 == true 
   && topLane4 == true && topLane5 == true && topLane6 == true) {
-    special = true; //Special lamps are scrolled from game loop
+    special = true; //Special lamps are scrolled from game loop when true
     
     //reset special conds.
     topLane1 = false; SetLamp(1, topRollovrLmp1);
@@ -549,7 +576,7 @@ void SpecialCheck() {
     topLane3 = false; SetLamp(1, topRollovrLmp3);
     topLane4 = false; SetLamp(1, topRollovrLmp4);
     topLane5 = false; SetLamp(1, topRollovrLmp5);
-    topLane6 = false; digitalWrite(topLaneLmp6, LOW);
+    topLane6 = false; digitalWrite(topLaneLmp6Pin, LOW);
     PlaySound(6); //You have the Special
   }
 }
@@ -559,17 +586,17 @@ void StepRightLaneVal() { //We dont get points here, just set value of target in
     case 0: 
       rightLaneTgtValue++;
       SetLamp(0, rightLne3kLmp);
-      digitalWrite(rightLne5kLmp, LOW);
+      digitalWrite(rightLne5kLmpPin, LOW);
       break;
     case 1:
       rightLaneTgtValue++;
       SetLamp(1, rightLne3kLmp);
-      digitalWrite(rightLne5kLmp, HIGH);
+      digitalWrite(rightLne5kLmpPin, HIGH);
       break;
     case 2:
       rightLaneTgtValue = 0;
       SetLamp(1, rightLne3kLmp);
-      digitalWrite(rightLne5kLmp, LOW);
+      digitalWrite(rightLne5kLmpPin, LOW);
       break;
   }
 }
@@ -579,19 +606,19 @@ void SpecialLmpsScroll() {
     case 0: 
       SetLamp(0, specialOutrLmps);
       SetLamp(1, specialInnrLmps);
-      digitalWrite(specialCnterLmp, LOW);
+      digitalWrite(specialCnterLmpPin, LOW);
       specialScroll++;
       break;
     case 1:
       SetLamp(1, specialOutrLmps);
       SetLamp(0, specialInnrLmps);
-      digitalWrite(specialCnterLmp, LOW);
+      digitalWrite(specialCnterLmpPin, LOW);
       specialScroll++;
       break;
     case 2:
       SetLamp(1, specialOutrLmps);
       SetLamp(1, specialInnrLmps);
-      digitalWrite(specialCnterLmp, HIGH);
+      digitalWrite(specialCnterLmpPin, HIGH);
       specialScroll = 0;
       break;
   }
